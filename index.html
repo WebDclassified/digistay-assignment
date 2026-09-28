@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DigiStay Assignment — Taking the last 30% off people</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --surface:#fff; --surface-2:#f1f3f6;
+    --text:#16191d; --text-soft:#4a5058; --text-faint:#6b7280;
+    --border:#e3e6ea; --border-strong:#cfd4da;
+    --accent:#b45309; --accent-soft:#fef3c7; --accent-ink:#7c2d12;
+    --build:#1d4ed8; --build-soft:#dbeafe;
+    --keep:#0f766e;  --keep-soft:#ccfbf1;
+    --warn:#b91c1c;  --warn-soft:#fee2e2;
+    --code-bg:#0f1419; --code-text:#e6edf3;
+    --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.1);
+    --shadow-lg:0 10px 24px rgba(16,24,40,.10),0 2px 6px rgba(16,24,40,.06);
+    --radius:14px; --radius-sm:9px;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;
+    --measure:72ch;
+  }
+  html[data-theme="dark"]{
+    --bg:#0b0e11; --surface:#13171c; --surface-2:#1a1f26;
+    --text:#e8ecf1; --text-soft:#b3bcc7; --text-faint:#8b95a1;
+    --border:#262d35; --border-strong:#333c46;
+    --accent:#f59e0b; --accent-soft:#3b2a08; --accent-ink:#fcd34d;
+    --build:#60a5fa; --build-soft:#0d213f;
+    --keep:#2dd4bf;  --keep-soft:#0a2e2a;
+    --warn:#f87171;  --warn-soft:#3a1414;
+    --code-bg:#05080b;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 1px 3px rgba(0,0,0,.3);
+    --shadow-lg:0 10px 24px rgba(0,0,0,.5),0 2px 6px rgba(0,0,0,.35);
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-behavior:smooth;scroll-padding-top:76px}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+       font-size:16.5px;line-height:1.66;-webkit-font-smoothing:antialiased}
+  a{color:var(--build);text-decoration:none} a:hover{text-decoration:underline}
+  code{font-family:var(--mono);font-size:.88em;background:var(--surface-2);
+       padding:1px 5px;border-radius:5px;border:1px solid var(--border)}
+
+  header.top{position:sticky;top:0;z-index:100;
+    background:color-mix(in srgb,var(--surface) 88%,transparent);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border)}
+  .top-inner{max-width:1240px;margin:0 auto;padding:10px 22px;display:flex;align-items:center;gap:14px}
+  .tabs{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:11px;border:1px solid var(--border)}
+  .tab{appearance:none;border:0;background:transparent;color:var(--text-soft);font:inherit;
+       font-size:.86rem;font-weight:600;padding:7px 14px;border-radius:8px;cursor:pointer;white-space:nowrap}
+  .tab:hover{color:var(--text)}
+  .tab[aria-selected="true"]{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+  .spacer{margin-left:auto}
+  .icon-btn{appearance:none;border:1px solid var(--border);background:var(--surface);color:var(--text-soft);
+    width:36px;height:36px;border-radius:9px;display:grid;place-items:center;cursor:pointer;font-size:15px}
+  .icon-btn:hover{color:var(--text);border-color:var(--border-strong)}
+
+  .shell{max-width:1240px;margin:0 auto;padding:24px 22px 72px;
+         display:grid;grid-template-columns:232px minmax(0,1fr);gap:38px;align-items:start}
+  aside.side{position:sticky;top:70px;max-height:calc(100vh - 90px);overflow:auto}
+  .side h4{margin:0 0 8px 4px;font-size:.68rem;text-transform:uppercase;
+           letter-spacing:.09em;color:var(--text-faint)}
+  .toc{list-style:none;margin:0;padding:0;border-left:2px solid var(--border)}
+  .toc a{display:block;padding:6px 12px;margin-left:-2px;border-left:2px solid transparent;
+    color:var(--text-soft);font-size:.86rem;line-height:1.4;border-radius:0 7px 7px 0}
+  .toc a:hover{color:var(--text);background:var(--surface-2);text-decoration:none}
+  .toc a.active{color:var(--accent);border-left-color:var(--accent);font-weight:600;background:var(--surface-2)}
+  .toc li{margin:0}
+  .side .rule{height:1px;background:var(--border);margin:14px 0}
+  main{min-width:0}
+  .view{display:none;animation:fade .2s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  .hero{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+        box-shadow:var(--shadow);padding:28px 30px;margin-bottom:24px}
+  h1{margin:0 0 8px;font-size:clamp(1.6rem,3.1vw,2.25rem);line-height:1.15;
+     letter-spacing:-.025em;font-weight:800}
+  .lede{color:var(--text-soft);font-size:1.02rem;max-width:var(--measure);margin:0}
+  section.blk{margin:0 0 32px;scroll-margin-top:84px}
+  h2{font-size:1.22rem;letter-spacing:-.018em;font-weight:750;margin:0 0 13px;
+     display:flex;align-items:center;gap:11px;padding-bottom:9px;border-bottom:2px solid var(--border)}
+  h2 .n{flex:0 0 27px;height:27px;border-radius:8px;background:var(--accent);color:#fff;
+        display:grid;place-items:center;font-size:.8rem;font-weight:800}
+  h3{font-size:.99rem;margin:20px 0 8px;font-weight:700;letter-spacing:-.01em}
+  .blk p{max-width:var(--measure)} .blk ul{max-width:var(--measure);padding-left:22px}
+  .blk li{margin:5px 0}
+  .lede-line{font-size:1.04rem;font-weight:650;border-left:4px solid var(--accent);
+             padding-left:14px;margin:0 0 15px;max-width:var(--measure)}
+  .finding{background:var(--surface);border:1px solid var(--border);
+           border-left:4px solid var(--accent);border-radius:var(--radius-sm);
+           padding:15px 17px;margin:0 0 13px;box-shadow:var(--shadow)}
+  .finding h4{margin:0 0 5px;font-size:.96rem;font-weight:700}
+  .finding p{margin:0;color:var(--text-soft);font-size:.92rem;max-width:none}
+
+  .tw{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius-sm);
+      background:var(--surface);box-shadow:var(--shadow);margin:0 0 8px}
+  table{border-collapse:collapse;width:100%;font-size:.9rem;min-width:520px}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{background:var(--surface-2);font-weight:700;font-size:.79rem;text-transform:uppercase;
+     letter-spacing:.05em;color:var(--text-soft)}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:color-mix(in srgb,var(--surface-2) 55%,transparent)}
+  .chip{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .c-free{background:var(--keep-soft);color:var(--keep)}
+  .c-build{background:var(--build-soft);color:var(--build)}
+  .c-never{background:var(--warn-soft);color:var(--warn)}
+  .c-cost{background:var(--accent-soft);color:var(--accent-ink)}
+
+  .call{border-radius:var(--radius-sm);padding:14px 17px;margin:0 0 14px;font-size:.93rem;
+        max-width:var(--measure);border:1px solid}
+  .call p{margin:0 0 7px;max-width:none}.call p:last-child{margin:0}
+  .call.warn{background:var(--warn-soft);border-color:color-mix(in srgb,var(--warn) 34%,transparent)}
+  .call.warn b{color:var(--warn)}
+  .call.assume{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 34%,transparent)}
+  .call.assume b{color:var(--accent-ink)}
+  .call.build{background:var(--build-soft);border-color:color-mix(in srgb,var(--build) 30%,transparent)}
+  .call.build b{color:var(--build)}
+
+  .dg-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 14px}
+  .seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);
+       border-radius:10px;padding:3px;gap:2px}
+  .seg button{appearance:none;border:0;background:transparent;color:var(--text-soft);font:inherit;
+    font-size:.8rem;font-weight:600;padding:6px 11px;border-radius:7px;cursor:pointer;white-space:nowrap}
+  .seg button[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+  .legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin:0 0 14px;font-size:.82rem;color:var(--text-soft)}
+  .legend .li{display:flex;align-items:center;gap:7px}
+  .legend .sw{width:12px;height:12px;border-radius:3px;flex:0 0 12px;border:1px solid rgba(0,0,0,.12)}
+  .codewrap{background:var(--code-bg);border-radius:var(--radius-sm);overflow:hidden;
+            box-shadow:var(--shadow-lg);border:1px solid var(--border-strong)}
+  .codebar{display:flex;align-items:center;gap:8px;padding:9px 14px;
+           background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.07)}
+  .codebar .t{font-size:.77rem;color:#9aa4b2;font-family:var(--mono)}
+  .codebar .btn{margin-left:auto;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);
+    color:#d7dde5;font:inherit;font-size:.74rem;padding:4px 10px;border-radius:6px;cursor:pointer}
+  pre{margin:0;padding:18px 20px;overflow-x:auto;color:var(--code-text);
+      font-family:var(--mono);font-size:.8rem;line-height:1.5}
+  pre.ascii .keep{color:#5eead4} pre.ascii .build{color:#93c5fd}
+  pre.ascii .human{color:#fcd34d} pre.ascii .accent{color:#fbbf24} pre.ascii .mute{color:#7d8590}
+  .dg-pane{display:none} .dg-pane.active{display:block}
+
+  .flow{counter-reset:step}
+  .fnode{position:relative;background:var(--surface);border:1px solid var(--border);
+         border-radius:var(--radius-sm);box-shadow:var(--shadow);padding:14px 16px 14px 18px;
+         margin-bottom:10px;border-left:4px solid var(--build)}
+  .fnode.k{border-left-color:var(--keep)} .fnode.h{border-left-color:var(--warn)}
+  .fnode.a{border-left-color:var(--accent)}
+  .fnode h4{margin:0 0 4px;font-size:.93rem;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .fnode h4 .tag{font-size:.66rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+    padding:2px 7px;border-radius:999px;background:var(--surface-2);color:var(--text-faint);
+    border:1px solid var(--border)}
+  .fnode p{margin:0;font-size:.88rem;color:var(--text-soft);max-width:none}
+  .arrow{text-align:center;color:var(--text-faint);font-size:1.05rem;line-height:1;margin:-4px 0 6px}
+
+  .mx{display:grid;grid-template-columns:170px repeat(3,1fr);gap:1px;background:var(--border);
+      border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;font-size:.83rem}
+  .mx div{background:var(--surface);padding:11px 12px}
+  .mx .h{background:var(--surface-2);font-weight:700;font-size:.76rem;text-transform:uppercase;
+         letter-spacing:.05em;color:var(--text-soft)}
+  .mx .rl{font-weight:700;background:var(--surface-2);color:var(--text)}
+  .mx .ok{color:var(--keep)} .mx .no{color:var(--warn)} .mx .mid{color:var(--accent-ink)}
+
+  .lane{margin-bottom:8px;background:var(--surface);border:1px solid var(--border);
+        border-radius:var(--radius-sm);overflow:hidden;box-shadow:var(--shadow)}
+  .lane > .lh{padding:9px 14px;font-size:.78rem;font-weight:800;letter-spacing:.05em;
+    text-transform:uppercase;border-bottom:1px solid var(--border);display:flex;gap:9px;align-items:center}
+  .lane .lh .d{width:8px;height:8px;border-radius:50%}
+  .lane .body{padding:12px 14px;font-size:.86rem;color:var(--text-soft);display:flex;
+    flex-wrap:wrap;gap:8px;align-items:center}
+  .lane .body .step{background:var(--surface-2);border:1px solid var(--border);border-radius:7px;
+    padding:5px 10px;font-size:.82rem;color:var(--text)}
+  .lane .body .arw{color:var(--text-faint)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:13px;margin:0 0 16px}
+  .gcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);
+         padding:15px 17px;box-shadow:var(--shadow)}
+  .gcard h4{margin:0 0 6px;font-size:.94rem;display:flex;align-items:center;gap:8px}
+  .gcard p{margin:0;font-size:.87rem;color:var(--text-soft)}
+  .swatch{width:10px;height:10px;border-radius:3px;flex:0 0 10px}
+
+  .steps{counter-reset:s;list-style:none;padding:0;margin:0 0 16px}
+  .steps li{counter-increment:s;position:relative;padding:11px 14px 11px 44px;background:var(--surface);
+    border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;box-shadow:var(--shadow);font-size:.9rem}
+  .steps li::before{content:counter(s);position:absolute;left:12px;top:11px;width:22px;height:22px;
+    border-radius:7px;background:var(--build);color:#fff;display:grid;place-items:center;
+    font-size:.74rem;font-weight:800}
+
+  .pager{display:flex;gap:12px;margin:36px 0 0;flex-wrap:wrap}
+  .pager button{flex:1 1 210px;appearance:none;border:1px solid var(--border);background:var(--surface);
+    color:var(--text);font:inherit;text-align:left;padding:14px 17px;border-radius:var(--radius);
+    cursor:pointer;box-shadow:var(--shadow);display:flex;align-items:center;gap:13px;
+    transition:transform .12s,border-color .15s,box-shadow .15s}
+  .pager button:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+  .pager .lbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint)}
+  .pager .ttl{font-weight:700;font-size:.95rem;margin-top:2px}
+  .pager .arr{margin-left:auto;font-size:1.15rem;color:var(--accent)}
+
+  @media (max-width:920px){
+    .shell{grid-template-columns:1fr;gap:0} aside.side{display:none}
+    .top-inner{flex-wrap:wrap;padding:9px 14px}
+    .tabs{order:3;width:100%;justify-content:space-between}
+    .tab{flex:1;justify-content:center;padding:7px 6px;font-size:.79rem}
+    .shell{padding:16px 14px 56px} .hero{padding:20px}
+    .mx{grid-template-columns:1fr}
+  }
+  @media print{
+    header.top,aside.side,.pager,.dg-toolbar,.codebar .btn,.legend{display:none!important}
+    .view{display:block!important} .dg-pane{display:block!important}
+    body{background:#fff;font-size:11pt} .shell{display:block;max-width:none}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" role="tab" id="tab-doc" aria-controls="view-doc" aria-selected="true">Document</button>
+      <button class="tab" role="tab" id="tab-diagram" aria-controls="view-diagram" aria-selected="false">Diagram</button>
+      <button class="tab" role="tab" id="tab-tools" aria-controls="view-tools" aria-selected="false">Tools note</button>
+    </nav>
+    <div class="spacer"></div>
+    <button class="icon-btn" id="theme" title="Toggle light / dark" aria-label="Toggle light or dark theme">◐</button>
+  </div>
+</header>
+
+<div class="shell">
+  <aside class="side">
+    <h4>On this page</h4>
+    <ul class="toc" id="toc-doc"></ul>
+    <div class="rule"></div>
+    <h4>Navigate</h4>
+    <ul class="toc" style="border:0">
+      <li><a href="#" data-goto="view-doc">Document</a></li>
+      <li><a href="#" data-goto="view-diagram">Diagram</a></li>
+      <li><a href="#" data-goto="view-tools">Tools note</a></li>
+    </ul>
+  </aside>
+
+  <main id="main">
+
+  <!-- ================= DOCUMENT ================= -->
+  <article class="view active" id="view-doc" role="tabpanel" aria-labelledby="tab-doc">
+    <div class="hero">
+      <h1>DigiStay Assignment</h1>
+      <p class="lede">Taking the last 30% of hotel-software support off people. I don't build an agent — I fix the measurement, keep the runtime you already pay for, and build the four things your vendor won't build for you.</p>
+    </div>
+
+    <section class="blk" id="s1">
+      <h2><span class="n">1</span> The answer</h2>
+      <p class="lede-line">Don't build an agent. Fix the measurement, keep the runtime you already pay for, and build the four things Intercom will never build for you.</p>
+      <div class="finding">
+        <h4>Your 70% is probably not a resolution rate.</h4>
+        <p>Intercom counts a conversation as resolved if the customer <b>confirms the answer was good</b> <b>or simply exits without asking for anything else</b> — the second case is an "assumed resolution." The canonical hotel failure is exactly that customer: they give up in the chat and phone the front desk at 23:00. That scores as resolved. If your 70% is an <i>Involvement Rate</i> rather than a Resolution Rate, it isn't a quality signal at all.</p>
+      </div>
+      <div class="finding">
+        <h4>Use escalation rules, not Procedures, for everything you never automate.</h4>
+        <p>A resolution costs <b>$0.99</b> and a <i>Procedure handoff</b> also costs <b>$0.99</b> — but an escalation triggered by a <b>workspace-level Escalation Rule is not billable at all</b>. So a never-automate category implemented as a Procedure costs a dollar per conversation; implemented as an escalation rule it's free. A false resolution is charged, then <i>deducted</i> when the customer returns — quality is a cost lever, not just a quality one.</p>
+      </div>
+      <p><b>My first deliverable is a re-baseline, not a model.</b></p>
+    </section>
+
+    <section class="blk" id="s2">
+      <h2><span class="n">2</span> Why the 30% doesn't resolve</h2>
+      <div class="tw"><table>
+        <thead><tr><th>Cause</th><th style="width:20%">Owner</th><th style="width:18%">How hard</th></tr></thead>
+        <tbody>
+          <tr><td><b>Constrained by config</b> — escalation rule fired, workflow intercepted, usage limit hit, human stepped in</td><td>Support ops</td><td>Not hard. Free to fix.</td></tr>
+          <tr><td><b>Customer asked for a person, sounded angry, or looped.</b> A behavioural refusal, not a knowledge failure</td><td>Product/UX</td><td>Partly easy</td></tr>
+          <tr><td><b>Language mismatch</b> — won't answer if the customer's language differs from the content language unless real-time translation is on</td><td>One toggle</td><td>Not hard</td></tr>
+          <tr><td><b>Message in a field it can't see</b> — tickets filed via "Create a ticket" put the problem in a ticket <i>attribute</i>; the agent only answers from messages</td><td>Support ops</td><td>Not hard, and invisible</td></tr>
+          <tr><td><b>Knowledge doesn't exist</b></td><td>Content</td><td>Medium</td></tr>
+          <tr><td><b>Knowledge exists, no authority to act</b> — it can say you're owed a credit, it can't issue one. <b>Knowledge ≠ authority</b></td><td>Engineering</td><td><b>This is the expensive one</b></td></tr>
+          <tr><td><b>Needs live customer state</b> across properties, plans, integrations, billing</td><td>Engineering</td><td>Hard</td></tr>
+          <tr><td><b>Content is stale</b> — billing, plan names, tax, OTA behaviour</td><td>Content + Product</td><td>Hard</td></tr>
+          <tr><td><b>Identity and scope</b> — chain regional manager, night manager, agency booking for someone else</td><td>Eng + Security</td><td><b>Hardest</b></td></tr>
+          <tr><td><b>Incident</b> — the PMS sync died at 22:00 and the hotel is full</td><td colspan="2">Never resolved by an agent</td></tr>
+          <tr><td><b>Commercial or legal</b> — contract, pricing, security questionnaire, DPA</td><td colspan="2">Never automated</td></tr>
+        </tbody>
+      </table></div>
+      <p>Causes 1–5 are <b>not capability failures</b>. They're hygiene, and they're probably most of your 30%. Cause 6 is the real engineering project. Causes 10–11 aren't targets.</p>
+      <p><b>The genuinely hard parts:</b> property-level authorisation — a hotel group isn't a tenant, and corporate admin, regional, property manager, night manager, front desk, revenue and accountant are seven roles with different rights; account-specific reasoning spanning two systems and a business-date concept; knowing when to hand over; proving a resolution actually happened; and turning a team from answerers into exception-handlers, which no code can reverse.</p>
+    </section>
+
+    <section class="blk" id="s3">
+      <h2><span class="n">3</span> What I need to confirm</h2>
+      <div class="tw"><table>
+        <thead><tr><th style="width:36%">I ask</th><th style="width:22%">From</th><th>What it changes</th></tr></thead>
+        <tbody>
+          <tr><td><b>"Which metric is 70%, exactly?"</b></td><td>Whoever built the report</td><td>Determines whether I have a quality problem or a measurement problem. Everything downstream depends on it.</td></tr>
+          <tr><td>"200 consecutive escalated conversations," split by cause — user-requested vs rules-vs-guidance</td><td>Head of Support</td><td>Sets the taxonomy, therefore the build. If our own guardrails cause most handoffs, I rewrite the rules instead of building an agent.</td></tr>
+          <tr><td>"What do you close that you shouldn't have?"</td><td>Head of Support</td><td>The 70% is contaminated. If the bot is confidently wrong, more automation makes it worse.</td></tr>
+          <tr><td>"What can an automated action legally touch?"</td><td>Product + Finance</td><td>Procedures and connectors, or nothing. Sets the never-automate list.</td></tr>
+          <tr><td>Refund/credit caps and who overrides</td><td>Finance</td><td>The line between "act" and "ask."</td></tr>
+          <tr><td>"Do we ever touch card data?"</td><td>Eng + Compliance</td><td>PCI scope, architecture, logging.</td></tr>
+          <tr><td>"Do EU chains require EU-only processing?"</td><td>Sales/Legal</td><td>Intercom now offers EU-hosted Fin. Decides whether that's sufficient.</td></tr>
+          <tr><td>SLAs by segment; do strategic accounts get a human first?</td><td>CS leadership</td><td>The audience-scoped rules, and the price of the VIP carve-out.</td></tr>
+        </tbody>
+      </table></div>
+      <div class="call assume">
+        <p><b>I assume</b> the 30% is dominated by diagnosable causes rather than capability ones — usually true, and the first thing I test. <b>I don't know</b> your volumes and channel mix, so every cost figure scales off them; nor the split of the 30% across these causes; nor whether you're PCI-scoped; nor whether you're a PMS or a channel manager, which changes what data exists to reason over. I proceed by building measurement first, keeping policy in configuration rather than code, and running a read-only shadow before any Procedure touches an account.</p>
+      </div>
+    </section>
+
+    <section class="blk" id="s4">
+      <h2><span class="n">4</span> What it does</h2>
+      <p class="lede-line">Fourteen categories, one rule, four hard stops.</p>
+      <div class="tw"><table>
+        <thead><tr><th style="width:44%">Category</th><th>How I handle it</th></tr></thead>
+        <tbody>
+          <tr><td>How-to / procedural</td><td>Answer from validated content, cite it, link the article</td></tr>
+          <tr><td>Account state lookup</td><td>Read-only connector. Render the facts; don't generate them</td></tr>
+          <tr><td>Data retrieval / export</td><td>Read connector, generate artefact, honour property scope strictly</td></tr>
+          <tr><td>Reversible account change</td><td>Auto, consequence restated after</td></tr>
+          <tr><td>Reversible but touches a live property</td><td>Auto with explicit confirmation — a wrong answer here is a sold-out hotel</td></tr>
+          <tr><td>Money within cap</td><td>Auto, restate the consequence, record it</td></tr>
+          <tr><td><b>Money above cap / contract / price / SLA</b></td><td>Procedure gathers everything, then pauses for human approval</td></tr>
+          <tr><td><b>Incident or outage</b></td><td>Don't troubleshoot. Acknowledge, page a human with blast-radius context, link a status page. <b>Never invent an ETA</b></td></tr>
+          <tr><td><b>Security, legal, procurement, DSAR/erasure</b></td><td>Acknowledge and route. Nothing more</td></tr>
+          <tr><td><b>Complaint, churn risk, competitor named</b></td><td>Warm handover with full context, immediately</td></tr>
+          <tr><td><b>Strategic / VIP account</b></td><td>Human first, by policy. This costs money — I make it an explicit founder decision</td></tr>
+          <tr><td>Multi-issue</td><td>Split. Resolve what's in scope, escalate the rest with what I already gathered</td></tr>
+          <tr><td>Out of scope / spam</td><td>Sales routing or silence</td></tr>
+        </tbody>
+      </table></div>
+      <p><b>The rule, evaluated every turn — not a one-shot classifier.</b> I hand over if any of: the intent is never-automate; the account is human-first; the action is above the confirmation threshold without pre-approval; the answer needs a fact that's in neither validated content nor a tool; the content that would answer it is past its TTL; the customer asked twice; confidence is below the <b>per-intent</b> threshold; the conversation exceeded N turns or K tool calls; or the customer disputes a fact the system asserted.</p>
+      <ul>
+        <li><b>The threshold is per intent, never global.</b> A 10% error rate on "what are your check-in hours" is fine; the same rate on "you're eligible for a full refund" is a chargeback. Confidence is weakest where consequences are largest, so high confidence plus high blast radius still confirms.</li>
+        <li><b>I make escalation cheap and never penalise it.</b> One click, no argument, no delay. If "human" is a fast way to skip the bot, the 30% never moves and you can't tell the difference. I measure <i>"asked for a human"</i> separately from <i>"the agent failed."</i></li>
+      </ul>
+      <div class="call warn">
+        <p><b>Never automated, however capable the technology gets.</b> Not because a model couldn't do it — because the error is unrecoverable and the cost lands on someone who isn't us: anything touching a <b>live property tonight</b> — room availability, check-in/out, payment capture; a hotel cannot have its inventory decided by a language model. <b>Money above cap</b> and anything committing the company on price, SLA or roadmap. <b>Decisions about guest personal data</b> — a guest cannot be "almost" deleted. <b>Security disclosures and signed attestations.</b> <b>Authenticating a person or granting access.</b> <b>Anything during an active incident for that tenant</b>, where correct behaviour is to be <i>muted</i>, not careful. And <b>any price or term not read live from a source of truth</b> — models remember old prices confidently.</p>
+      </div>
+      <p><b>What the human receives — a packet, not a transcript:</b> one-line issue summary; account and properties in scope; <b>verified identity and on whose authority they may act</b>; every tool call already made; the specific fact still unknown and the three places most likely to hold it; the last customer message verbatim; which content version was cited and whether it was within TTL; why the agent stopped; <b>a machine-drafted reply to edit</b>; risk flags and SLA clock. This turns "customer is angry, please help" into "P2, invoice variance, Plan Pro, $2.4k ARR, identity confirmed via SSO, one $340 credit pending your approval, draft attached."</p>
+    </section>
+
+    <section class="blk" id="s5">
+      <h2><span class="n">5</span> The system</h2>
+      <p>Four views of the same architecture are in the <a href="#" data-goto="view-diagram">Diagram</a> tab — flow, map, blast radius and swimlanes.</p>
+      <div class="grid">
+        <div class="gcard" style="border-top:3px solid var(--keep)">
+          <h4><span class="swatch" style="background:var(--keep)"></span>Keep — Intercom</h4>
+          <p>Already has Procedures, first-class human-in-the-loop with Slack, and audience-matched capability enumeration via MCP. Rebuilding that is the most expensive mistake available; replacing the inbox is a 6–12 month distraction.</p>
+        </div>
+        <div class="gcard" style="border-top:3px solid var(--build)">
+          <h4><span class="swatch" style="background:var(--build)"></span>Build — Action Gateway</h4>
+          <p>Vendor audiences are coarse; a hotel group needs property- and role-level scope. Read and write use different credentials, every write is idempotent with a post-condition, and this is where the parallel fan-out lives.</p>
+        </div>
+        <div class="gcard" style="border-top:3px solid var(--build)">
+          <h4><span class="swatch" style="background:var(--build)"></span>Build — Document registry</h4>
+          <p>Content is a projection, not a source of truth. Owners, version scope, volatility classes, expiry, and a CI gate blocking any knowledge change that regresses the golden suite.</p>
+        </div>
+        <div class="gcard" style="border-top:3px solid var(--build)">
+          <h4><span class="swatch" style="background:var(--build)"></span>Build — Evaluation harness</h4>
+          <p>Vendor tests test their agent. They can't test my blast-radius policy or my multi-tenant scope. Golden set de-identified at ingestion; red-team cases in CI permanently.</p>
+        </div>
+        <div class="gcard" style="border-top:3px solid var(--accent)">
+          <h4><span class="swatch" style="background:var(--accent)"></span>Model — vendor's choice</h4>
+          <p>I don't choose a model, so model-selection literature is irrelevant. I spend the budget on scope and evaluation. I don't self-host — the win is in the data and the workflow.</p>
+        </div>
+        <div class="gcard" style="border-top:3px solid var(--warn)">
+          <h4><span class="swatch" style="background:var(--warn)"></span>Not built</h4>
+          <p>A second runtime, a vector database, a replacement inbox, a fine-tuned model, and an agent that writes its own documentation. Procedures are strictly sequential — which is why the Gateway does the fan-out.</p>
+        </div>
+      </div>
+      <div class="call build">
+        <p><b>The model is not an authorization boundary.</b> The single highest-severity bug in a system like this is a tool that accepts a record identifier from model output and passes it to the database unscoped. The scope comes from the authenticated session, server-side; the model may supply a filter, never the scope. In a hotel group this is the difference between a regional manager resolving another property's booking and not.</p>
+      </div>
+    </section>
+
+    <section class="blk" id="s6">
+      <h2><span class="n">6</span> Implementation</h2>
+      <p><b>Where it runs.</b> AWS, one region — EU if you have EU-hosted Intercom and EU chains, since the agent's AI processing already stays in the EU there. API Gateway + Lambda on the sync path, SQS for async, Postgres for the decision log, Secrets Manager, CloudTrail, Terraform. A few thousand lines, not a platform.</p>
+      <p><b>On the way in.</b> I verify the webhook signature, return 200 immediately, and enqueue — never process inline, because Intercom retries slow webhooks and a retried webhook is how you get a duplicate refund. Then I claim a lock keyed on conversation + message id, and <b>if a teammate has already replied I drop the job, permanently, for that conversation.</b> A queued agent reply landing after a human has answered is the number-one embarrassment and a compliance problem.</p>
+      <p><b>How it knows the product.</b> Three tiers, descending trust. <b>One: my document registry</b> — every article has an owner, a version scope, a last-verified date and a volatility class (billing/tax 14 days, UI 180 days, security/integrations 30 days). Only <code>VALIDATED</code> docs are projected into Intercom, and an expired doc <i>cannot</i> be answered from. <b>Two: executable truth</b> — the product's own API and permission model, which can't go stale by definition. <b>Three: verified staff answers</b>, promoted with an expiry and approved by a human. That third tier is the compounding asset — every escalated conversation is a candidate answer.</p>
+      <p>A doc edit invalidates the cache and <b>re-runs the golden suite; a knowledge change that regresses it is blocked from deploying.</b> And "I don't have a verified answer for that" is a <i>success</i> — my suite scores calibrated abstention as a positive.</p>
+      <p><b>How it acts.</b> The Action Gateway is the only thing holding a credential. Read and write use different credentials. Every write carries an idempotency key and a post-condition assertion — "resend invoice" then asserts a delivery record exists and is timestamped <i>after</i> the call, which stops a timeout double-charging. Every non-trivial action <b>restates its consequence in one line</b> before executing, catching both the model's intent errors and the customer's misunderstanding. Everything is append-only audited with a compensating action recorded where possible.</p>
+      <div class="call assume">
+        <p><b>Cost — the insight that inverts the usual instinct.</b> The dominant cost is the <b>$0.99 outcome fee, not tokens</b>. So I never route a never-automate conversation through a Procedure; I never run "bot only" mode, because it converts every escalation into a dead end; and I treat every false resolution as a double charge. Only then do I optimise model spend.</p>
+      </div>
+      <p><b>What I record, and what I never do.</b> I record intent, reason code, the <i>names</i> of tools called and their outcomes, content IDs and versions cited, confidence, cost, outcome type, escalation reason, resolution verdict. I <b>never</b> record card numbers, guest PII from free text, credentials, full message bodies in my own store, or unredacted prompts in any third-party log. Two specifics: the agent's memory feature is beta, on by default, and retains personal details for 180 days — so I decide that explicitly, because "facts a customer shared" may include guest details. And <b>I de-identify the eval set at ingestion, not at export</b> — if the goldens are irreversibly de-identified when written, GDPR erasure collapses to a database delete.</p>
+      <p><b>Where it fails first.</b> One: property-level authorisation across a chain — the most likely silent failure and the worst consequence. Two: confident staleness on billing and integration setup after a PMS release. Three: hallucinated capability. Four: double side effects on retry. Five: the metric lying — automation rising because customers gave up. Six: support resistance — if nobody writes the answers any more, the content flywheel dies. Seven: seasonal peaks.</p>
+    </section>
+
+    <section class="blk" id="s7">
+      <h2><span class="n">7</span> Getting it running</h2>
+      <div class="tw"><table>
+        <thead><tr><th style="width:20%">Phase</th><th style="width:7%">Weeks</th><th>What I do</th><th style="width:17%">Exposure</th></tr></thead>
+        <tbody>
+          <tr><td><b>0 — Re-baseline</b></td><td>1–2</td><td>Name the metric. Export history under both definitions. Tag every escalation and split by cause. If our own guardrails dominate, rewrite the rules instead of building an agent. Turn on language coverage; ingest ticket descriptions</td><td><span class="chip c-free">Zero</span> May be most of the 30%</td></tr>
+          <tr><td><b>1 — Shadow</b></td><td>3–4</td><td>Read-only against live traffic, nothing ever sent. Humans compare</td><td><span class="chip c-free">Zero</span></td></tr>
+          <tr><td><b>2 — Read-only answers</b></td><td>5–6</td><td>Autonomous answers, no writes, to a 5% allowlist of low-risk accounts chosen by Support</td><td><span class="chip c-cost">Low</span></td></tr>
+          <tr><td><b>3 — Procedures</b></td><td>7–10</td><td>Top automatable flows, with human-in-the-loop on every money decision</td><td><span class="chip c-build">Medium</span></td></tr>
+          <tr><td><b>4 — Capped writes</b></td><td>11–12</td><td>Reversible actions. 100% human review of writes for two weeks, then 5% sampling</td><td><span class="chip c-build">Medium</span></td></tr>
+        </tbody>
+      </table></div>
+      <p>Then I expand by intent class, one at a time. Never a big-bang switch.</p>
+      <p><b>De-risking the first real customer message:</b> nobody at first, then a 1% allowlist with a human watching the queue. <b>Disclosure is a live legal obligation</b> — EU AI Act Article 50 became applicable on <b>2 August 2026</b> and requires people to be told they're interacting with an AI, at the latest at the time of first interaction. The vendor now lets you <b>remove</b> the automatic "AI Agent" label, so disclosure can silently vanish, and the Messenger intro message doesn't fire for WhatsApp, Instagram, SMS or Slack. <b>I leave the label on and cover every channel.</b> Plus a one-click "talk to a person"; no autonomous write of any new type for its first 30 days, ramping suggest-and-approve → auto-with-cap → auto; global, per-intent and per-account kill switches; hard caps on turns, tool calls and cost that force handover instead of looping; and red-team drills before launch and permanently in CI — prompt injection, a cross-property request, a fabricated outage, a false customer claim.</p>
+      <p><b>What would make me withdraw it</b>, pre-committed with a named owner:</p>
+      <ul>
+        <li><b>Safety — immediately, on one occurrence:</b> a cross-property disclosure, an unapproved money movement, anything cardholder-related, or an autonomous statement that commits the company. Kill switch, then postmortem before restart.</li>
+        <li><b>Trust:</b> autonomous CSAT more than 0.3 below the human baseline over 500 conversations, sustained two weeks; or "wrong answer" reports above 3%; or repeat-contact-in-7-days up 20% relative.</li>
+        <li><b>Progress:</b> handover rate not falling after two full cycles of iteration on the same intent class. That's the hard tail, and I want the money already spent.</li>
+        <li><b>Cost:</b> cost per resolution more than 50% above model. <b>Foundations:</b> validated content coverage can't be held above ~90% — at that point this is a documentation problem in an AI costume, and I say so.</li>
+        <li><b>Governance:</b> a regulator or a chain's security review flags the AI component, or a data-subject request reveals logged PII that shouldn't be there.</li>
+      </ul>
+      <p><b>The rule I fix now, before I see the numbers:</b> if confirmed resolution turns out materially below the assumed figure, I switch the metric I optimise from automation rate to <b>repeat-contact-in-7-days</b>, and the target becomes "fewer humans overall" rather than "higher resolution rate." A customer fixed on the second contact still costs us less than one fixed on the first.</p>
+      <p><b>The following months.</b> Months 1–2 are operations: the reason mix shifts, the easy tail moves first, the hard tail becomes visible and is usually smaller than feared. Months 3–4 the corpus starts compounding — I watch the "unknown" rate fall, because that's the real health metric. Months 5–6 the support team changes shape: hiring and training become "when to take over and how to use a draft." That's the change most programmes underweight and it isn't reversible by code. Months 6–12 the PMS and integration connectors become the moat, and the agent's "unknowns" double as a product roadmap input. Standing risk is drift toward an unexplainable black box, which I counter with per-reply citations and a replayable decision log.</p>
+    </section>
+
+    <section class="blk" id="s8">
+      <h2><span class="n">8</span> Build, buy, delegate — and cost</h2>
+      <div class="grid">
+        <div class="gcard" style="border-top:3px solid var(--keep)">
+          <h4><span class="swatch" style="background:var(--keep)"></span>Buy and keep</h4>
+          <p>Intercom wholesale, including the model underneath it. Its <b>$0.99 published unit price</b> is itself an advantage: the specialist agent platforms all sell outcome-based but publish no list price, so Intercom's number is the only one I can model a budget against.</p>
+        </div>
+        <div class="gcard" style="border-top:3px solid var(--build)">
+          <h4><span class="swatch" style="background:var(--build)"></span>Build — four things</h4>
+          <p>① <b>Policy &amp; Action Gateway</b> — authorisation, property scope, blast-radius classification, idempotency, post-conditions, audit, parallel fan-out. ② <b>Document registry.</b> ③ <b>Evaluation harness.</b> ④ <b>Honest measurement.</b></p>
+        </div>
+        <div class="gcard" style="border-top:3px solid var(--accent)">
+          <h4><span class="swatch" style="background:var(--accent)"></span>Hand off</h4>
+          <p>Document authoring to Support and Product SMEs, with the agent's "unknown" queue as the work list. Refund <i>policy</i> to Finance — the agent consumes it, never decides it. PMS connectors to the integration team.</p>
+        </div>
+        <div class="gcard" style="border-top:3px solid var(--warn)">
+          <h4><span class="swatch" style="background:var(--warn)"></span>Refuse outright</h4>
+          <p>Replacing Intercom. Letting a model make an authorisation decision. Any incident automation. Letting the agent author its own documentation. Training a custom model.</p>
+        </div>
+      </div>
+      <div class="call build">
+        <p><b>I make this scale-conditional, because the answer changes with volume.</b> Under roughly <b>2,000 conversations a month</b> I build none of the four components — I configure Intercom and spend the engineering time only on the document registry, which is the one piece with a return at any scale. Above that line, the Gateway and the evaluation harness pay back. A 400-conversation-a-month customer does not need a platform, and recommending one would be the wrong answer.</p>
+      </div>
+      <p><b>Procurement:</b> SSO, SLAs, multibrand and the extended API limit are <b>Expert-plan only</b> at $139/seat monthly against $39 Essential. If enterprise chains will demand SSO, budget for Expert. The <b>Pro add-on</b> gates Topics Explorer and CX Score — and CX Score is how I see the "assumed resolution" problem without surveys.</p>
+      <p><b>Cost.</b> Replace the volume, keep the arithmetic. Per 1,000 conversations at today's 70/30: 300 human-handled, ~300 billable outcomes. If 60% of the 30% is automated, 120 human-handled — and the part people miss, <b>every never-automate escalation is $0.00, because escalation rules aren't billable.</b> Savings are $0.99 per human conversation eliminated, plus the human cost behind it. Everything else is a flat monthly number in the low thousands, against a one-off build of two engineers plus a support-ops person for a quarter.</p>
+      <p><b>How I frame this for the founder:</b> this is not primarily a cost programme. The saving is a handful of support seats. The value is <b>coverage at 23:00 on a Saturday</b> — when a hotel with 180 rooms occupied and a broken channel sync has two choices, and both are a phone call to a person. The renewal argument, not the headcount argument, pays for this.</p>
+      <p><b>What I commit to. I don't commit to zero, and I push back on the target.</b></p>
+      <ul>
+        <li><b>6 months:</b> human-handled contacts down <b>50–60%</b> against a re-baselined figure.</li>
+        <li><b>12 months:</b> down <b>~70%</b> — roughly 9% of all contacts reach a person.</li>
+        <li><b>100% autonomous, permanently, on a named intent set</b> — how-to, account state, exports, resets. That's the number a founder can rely on: "no human is ever needed to reset a password or re-send an invoice." Checkable, and worth more than a vague percentage.</li>
+        <li><b>The metric I report:</b> human contacts per 1,000 accounts per month, plus repeat-contact-in-7-days. <b>Not deflection</b> — deflection is a number you can raise by failing.</li>
+      </ul>
+      <p><b>Where the remainder goes:</b> a three-person specialist desk — Billing &amp; Finance, Integrations/PMS, Trust &amp; Compliance — with the agent as copilot, not competitor. <b>What I refuse to automate:</b> incidents, security/legal, erasure requests, and money above cap. Those stay human permanently, and the better system says so out loud at 23:00 rather than pretending otherwise.</p>
+    </section>
+
+    <section class="blk" id="s9">
+      <h2><span class="n">9</span> Assumptions and gaps</h2>
+      <div class="call assume">
+        <p><b>I assume</b> (stated because I'll proceed, not because I checked): the 30% is dominated by diagnosable causes rather than capability ones; that your support function runs on Intercom, as described; that the product touches guest and property data.</p>
+        <p><b>Unknown and load-bearing:</b> conversation volumes and channel mix — every cost figure scales off them; the split of the 30% across the causes above; whether you're PCI-scoped at all; customer geography; and whether you're a PMS, a channel manager, or something between, which changes what data exists to reason over.</p>
+      </div>
+      <div class="call warn">
+        <p><b>What I couldn't verify, stated rather than hidden.</b> <b>PCI:</b> the structural reasoning holds — a refund is a merchant-balance operation, not cardholder-data processing, so scope is driven by whether a card number is ever transmitted, processed or stored, and the dominant leak paths are logs, traces, the CRM retrieval path and eval fixtures, not the chat box. <b>But I did not read the SAQ A document itself</b>, so the precise eligibility wording after the March 2025 change is unverified and a QSA must read it before anyone relies on it. If you're a <i>service provider</i> rather than a merchant, SAQ D is the only applicable self-assessment. <b>EU–US Data Privacy Framework:</b> I don't know its current litigation status; if it falls, EU traffic needs SCCs and a transfer impact assessment, though EU-hosted Intercom shrinks that exposure. <b>Model token pricing:</b> omitted rather than guessed; the structural levers are price-independent. <b>Competition:</b> I make no comparative price claims about any agent vendor beyond the verified fact that they publish no list price. And I reject two absence-of-evidence claims — that no public prompt-injection breach of a support bot exists, and that no public cross-tenant agent incident exists — because I couldn't verify either way.</p>
+      </div>
+    </section>
+
+    <div class="pager">
+      <button data-goto="view-diagram">
+        <div><div class="lbl">Next</div><div class="ttl">Diagram</div></div><span class="arr">→</span>
+      </button>
+      <button data-goto="view-tools">
+        <div><div class="lbl">Then</div><div class="ttl">Tools note</div></div><span class="arr">→</span>
+      </button>
+    </div>
+  </article>
+
+  <!-- ================= DIAGRAM ================= -->
+  <article class="view" id="view-diagram" role="tabpanel" aria-labelledby="tab-diagram">
+    <div class="hero">
+      <h1>The system, end to end</h1>
+      <p class="lede">From a customer message to a resolution — and what I hand to a human when I stop.</p>
+    </div>
+
+    <div class="dg-toolbar">
+      <div class="seg" role="group" aria-label="Diagram view">
+        <button data-dg="flow"    aria-pressed="true">Flow</button>
+        <button data-dg="ascii"   aria-pressed="false">Map</button>
+        <button data-dg="matrix"  aria-pressed="false">Blast radius</button>
+        <button data-dg="swim"    aria-pressed="false">Swimlanes</button>
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="li"><span class="sw" style="background:var(--keep)"></span>Keep — vendor</div>
+      <div class="li"><span class="sw" style="background:var(--build)"></span>I build</div>
+      <div class="li"><span class="sw" style="background:var(--warn)"></span>Human-only</div>
+      <div class="li"><span class="sw" style="background:var(--accent)"></span>Cost lever</div>
+    </div>
+
+    <div class="dg-pane active" id="dg-flow">
+      <div class="flow">
+        <div class="fnode"><h4><span class="tag">Customer</span>Message arrives</h4>
+          <p>Messenger · email · WhatsApp · Instagram · SMS · in-app · Discord · Teams · phone. A signed webhook carries it to me.</p></div>
+        <div class="arrow">▼</div>
+        <div class="fnode k"><h4><span class="tag">Keep</span>Intercom</h4>
+          <p>Conversation state, human inbox, the agent runtime ($0.99/outcome), content library, Procedures, data connectors, escalation rules, audiences, human-in-the-loop approval, EU-hosted workspace.</p></div>
+        <div class="arrow">▼</div>
+        <div class="fnode"><h4><span class="tag">I build</span>Policy &amp; Action Gateway</h4>
+          <p>Idempotency lock · yield to humans if a teammate already replied · ingest ticket fields the agent can't see · classify intent and risk · authorise from the authenticated session · attach blast-radius class · do the parallel fan-out Procedures can't.</p></div>
+        <div class="arrow">▼</div>
+        <div class="fnode a"><h4><span class="tag">Decision</span>Which branch?</h4>
+          <p>Never-automate goes straight to escalation rules — <b>free</b>. In-scope goes to the agent. Confidence is measured per intent, never globally.</p></div>
+        <div class="arrow">▼</div>
+        <div class="fnode"><h4><span class="tag">I build</span>Agent loop</h4>
+          <p>Answer from validated content with citations, ask for clarification, or run a Procedure. The model may propose a consequence; it never authorises one.</p></div>
+        <div class="arrow">▼</div>
+        <div class="fnode"><h4><span class="tag">I build</span>Action Gateway</h4>
+          <p>Allowlisted tools, typed schemas, idempotency key, post-condition assertion, blast-radius class. The only component holding a credential.</p></div>
+        <div class="arrow">▼</div>
+        <div class="fnode h"><h4><span class="tag">Gate</span>Human in the loop</h4>
+          <p>Restate the consequence in one line, collect a decision, approve / decline / take over. Reaches the reviewer in Slack or the inbox. On timeout it escalates with a message to the customer.</p></div>
+        <div class="arrow">▼</div>
+        <div class="fnode h"><h4><span class="tag">Human</span>Specialist desk</h4>
+          <p>Billing &amp; Finance · Integrations/PMS · Trust &amp; Compliance. They receive a structured packet and a machine-drafted reply — not a transcript to reconstruct.</p></div>
+      </div>
+      <h3>The six gateway steps</h3>
+      <ol class="steps">
+        <li><b>Idempotency lock</b> on conversation + message, so a retried webhook can't produce a duplicate refund.</li>
+        <li><b>Yield to humans</b> — if a teammate has replied, drop the job, permanently for that conversation.</li>
+        <li><b>Ingest blind spots</b> — pull ticket-description fields the agent can't see.</li>
+        <li><b>Classify intent and risk</b> into a policy decision, not a one-shot label.</li>
+        <li><b>Authorise</b> from the authenticated session, server-side. The model supplies a filter, never the scope.</li>
+        <li><b>Attach blast-radius class</b> — which decides auto, confirm, or human approval.</li>
+      </ol>
+    </div>
+
+    <div class="dg-pane" id="dg-ascii">
+      <div class="codewrap">
+        <div class="codebar"><span class="t">end-to-end map</span><button class="btn" onclick="copyDiag(this)">Copy</button></div>
+<pre class="ascii"><code id="diag"><span class="mute">  CUSTOMER          Messenger · email · WhatsApp · IG · SMS · in-app
+                    Discord · Teams · (phone → Voice)</span>
+                          <span class="mute">│  signed webhook</span>
+<span class="keep">  KEEP              ▼
+  (don't replace)  INTERCOM</span> <span class="mute">— conversation state, human inbox, agent runtime
+                    ($0.99/outcome), Content, Procedures, Data connectors,
+                    Escalation Rules + Guidance, Audiences, HITL,
+                    Topics Explorer / CX Score, EU-hosted workspace</span>
+                          <span class="mute">│</span>
+<span class="build">  ◄─ I BUILD ──►    ▼
+                   POLICY &amp; ACTION GATEWAY</span>
+                     <span class="build">1</span> <span class="mute">idempotency lock (conversation+message) — webhooks retry
+                     <span class="build">2</span> YIELD TO HUMANS: teammate already replied → drop the job,
+                       permanently, for that conversation
+                     <span class="build">3</span> ingest ticket-description fields the agent can't see
+                     <span class="build">4</span> classify intent + risk → policy decision
+                     <span class="build">5</span> authorise: scope from the AUTHENTICATED SESSION, server-side.
+                       Model supplies a filter, never the scope
+                     <span class="build">6</span> attach blast-radius class  R0 read → R4 never
+                     <span class="build">7</span> parallel fan-out for multi-system reads (Procedures can't)</span>
+                          <span class="mute">│</span>
+        <span class="mute">never-automate</span> ──┴── <span class="mute">in-scope</span>
+             <span class="mute">│</span>                            <span class="build">▼</span>
+             <span class="mute">│</span>                     <span class="build">AGENT LOOP</span>
+             <span class="mute">│</span>                     <span class="mute">answer / clarify / Procedure
+                       (NL + conditions + Python + connectors)</span>
+             <span class="mute">│</span>                            <span class="mute">│  citations</span>
+             <span class="mute">│</span>                     <span class="build">TOOL CALL → ACTION GATEWAY</span>
+             <span class="mute">│</span>                     <span class="mute">allowlisted, typed schemas, idempotency
+                       key, post-condition assert, R0–R4 class</span>
+             <span class="mute">│</span>                            <span class="mute">│</span>
+             <span class="mute">│</span>                     <span class="human">HITL: restate consequence → collect
+                       decision → approve/decline/take over (Slack+UI)</span>
+             <span class="build">▼</span>                            <span class="build">▼</span>
+<span class="human">  HUMAN      SPECIALIST DESK</span> <span class="mute">— billing · integrations · trust &amp; compliance
+             structured handoff packet + machine-drafted reply</span>
+
+  <span class="accent">OFF THE HOT PATH (also mine)</span>
+   <span class="build">• DOC REGISTRY</span> <span class="mute">(source of truth) → content-sync → Content library.
+     Only state=VALIDATED ever ships. Owner, version scope, volatility class
+     → TTL → expiry blocks the answer instead of serving a stale one.
+   • EVAL HARNESS: golden set from real escalations, DE-IDENTIFIED AT INGESTION.
+     Replay + CI gate blocking regressions. Red-team: injection, cross-property
+     request, fake outage, invented capability.
+   • DECISION LOG: append-only — intent, reason, tools+outcomes, versions cited,
+     confidence, cost. No transcripts, no raw payloads, no PAN.
+   • MEASUREMENT: human contacts per 1,000 accounts/month, repeat-contact-in-7-days,
+     confirmed-vs-assumed. Never deflection alone.</span></code></pre>
+      </div>
+    </div>
+
+    <div class="dg-pane" id="dg-matrix">
+      <h3>Every action, and what gates it</h3>
+      <p>Blast radius is set by the Action Gateway, outside the model. It's the single table that decides what runs automatically.</p>
+      <div class="mx">
+        <div class="h">Class</div><div class="h">Examples</div><div class="h">Gate</div><div class="h">Billed?</div>
+        <div class="rl">R0 · read</div><div>Plan, properties, invoice history, integration health</div><div class="ok">Automatic</div><div class="ok">Resolution $0.99</div>
+        <div class="rl">R1 · reversible</div><div>Add user, reset password, re-send invoice, re-map a rate</div><div class="ok">Automatic + consequence restated</div><div class="ok">Resolution $0.99</div>
+        <div class="rl">R2 · live property</div><div>Close a room type tonight, alter a rate plan</div><div class="mid">Confirm explicitly</div><div class="ok">Resolution $0.99</div>
+        <div class="rl">R3 · money</div><div>Credit above cap, plan change, contract, data export, access reset</div><div class="no">Human approval — always</div><div class="mid">$0.99 on procedure handoff</div>
+        <div class="rl">R4 · never</div><div>Incident, security/legal, DSAR/erasure, complaint, VIP, pricing commitment</div><div class="no">Escalation rule — hard stop, no answer attempted</div><div class="ok">$0.00 — not billable</div>
+      </div>
+      <div class="call build">
+        <p><b>The cost logic in one line:</b> R4 must be an <b>escalation rule</b>, not a Procedure. A Procedure handoff is billed at $0.99; a workspace-level escalation rule is not billed at all. Every never-automate conversation routed the wrong way costs a dollar for nothing.</p>
+      </div>
+    </div>
+
+    <div class="dg-pane" id="dg-swim">
+      <h3>Who does what</h3>
+      <div class="lane">
+        <div class="lh"><span class="d" style="background:var(--keep)"></span>Keep — vendor</div>
+        <div class="body">
+          <span class="step">Conversation state + channels</span><span class="arw">→</span>
+          <span class="step">Agent runtime</span><span class="arw">→</span>
+          <span class="step">Content library</span><span class="arw">→</span>
+          <span class="step">Procedures + HITL</span><span class="arw">→</span>
+          <span class="step">Escalation rules</span><span class="arw">→</span>
+          <span class="step">Topics / CX Score</span>
+        </div>
+      </div>
+      <div class="lane">
+        <div class="lh"><span class="d" style="background:var(--build)"></span>I build</div>
+        <div class="body">
+          <span class="step">Policy &amp; Action Gateway</span><span class="arw">→</span>
+          <span class="step">Document registry</span><span class="arw">→</span>
+          <span class="step">Evaluation harness</span><span class="arw">→</span>
+          <span class="step">Decision log</span><span class="arw">→</span>
+          <span class="step">Measurement</span>
+        </div>
+      </div>
+      <div class="lane">
+        <div class="lh"><span class="d" style="background:var(--warn)"></span>Human-only — never automated</div>
+        <div class="body">
+          <span class="step">Incidents</span><span class="arw">·</span>
+          <span class="step">Security &amp; legal</span><span class="arw">·</span>
+          <span class="step">Erasure / DSAR</span><span class="arw">·</span>
+          <span class="step">Money above cap</span><span class="arw">·</span>
+          <span class="step">Live property tonight</span><span class="arw">·</span>
+          <span class="step">Complaints / VIP</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pager">
+      <button data-goto="view-doc"><div><div class="lbl">Back</div><div class="ttl">Document</div></div><span class="arr">←</span></button>
+      <button data-goto="view-tools"><div><div class="lbl">Next</div><div class="ttl">Tools note</div></div><span class="arr">→</span></button>
+    </div>
+  </article>
+
+  <!-- ================= TOOLS ================= -->
+  <article class="view" id="view-tools" role="tabpanel" aria-labelledby="tab-tools">
+    <div class="hero">
+      <h1>Tools, and what I couldn't verify</h1>
+    </div>
+
+    <section class="blk" id="t1">
+      <h2><span class="n">A</span> How I researched</h2>
+      <p>The built-in <code>web_search</code> tool failed for the entire session with a provider auth error. I cite nothing from it and used it for nothing. I fetched primary sources directly over HTTPS and parsed them locally — the vendor's help centre, the EU AI Act text, OWASP, PCI SSC, vendor pricing pages and the AWS price list — because vendor pricing and standards documents are the only places these claims are true.</p>
+      <p>I ran four research subagents in parallel. Two produced a useful structural brief before the tooling failure. I delegated one narrow task — current Bedrock token pricing — and it failed; rather than invent figures I left model token prices out entirely and argued the cost case on outcome pricing, which dominates. Near the deadline I also fetched competitor pricing pages directly, which is how I confirmed the specialist vendors publish no list price.</p>
+    </section>
+
+    <section class="blk" id="t2">
+      <h2><span class="n">B</span> Verified from primary sources</h2>
+      <ul>
+        <li>Outcome pricing and billing rules; <code>Automation Rate = Involvement × Resolution</code> and the exclusion of Procedure handoffs.</li>
+        <li>The 2026 metric redefinition, rollout dates, and "constrained conversation" categories.</li>
+        <li>"Assumed resolution" and the later-return deduction.</li>
+        <li>The four documented reasons the agent may not answer, including the ticket-description blind spot and language mismatch.</li>
+        <li>Escalation defaults, offer-vs-escalate logic, Rules vs Guidance, the 100-rule cap, HTTP-status branching limitation.</li>
+        <li>Procedures' capabilities and sequential-only limitation; the human-in-the-loop step and its timeout, off-hours and Slack behaviour.</li>
+        <li>The MCP server's two endpoints, five tools, audience-matched capability enumeration; the Performance funnel's segment split.</li>
+        <li>Seat pricing and Expert-only features; EU-hosted processing; AU remaining US-processed.</li>
+        <li>AI disclosure being removable and its per-channel gaps; agent memory's 45/45/180-day retention; CX Score's design intent.</li>
+        <li>EU AI Act Article 50 in force from 2 August 2026; OWASP LLM Top 10, 2026 edition current; that specialist agent vendors publish no list price.</li>
+      </ul>
+    </section>
+
+    <section class="blk" id="t3">
+      <h2><span class="n">C</span> What I couldn't verify</h2>
+      <div class="call warn">
+        <p><b>PCI.</b> The relevant SAQ A eligibility question is live and current and the structural reasoning holds — a refund is a merchant-balance operation, not cardholder-data processing, so scope is driven by whether a PAN is ever transmitted, processed or stored, and the dominant leak paths are logs, traces, the CRM retrieval path and eval fixtures, not the chat box. <b>But I did not read the SAQ A document itself</b>, so the precise eligibility wording after the March 2025 change is unverified, and a QSA must read it before anyone relies on it. If you're a <i>service provider</i> rather than a merchant, SAQ D is the only applicable self-assessment — the A/A-EP ladder is a merchant tool, and calling yourself "SAQ A" would be category-confused.</p>
+      </div>
+      <p><b>EU–US Data Privacy Framework.</b> I don't know its current litigation status. If it falls, EU traffic needs SCCs and a transfer impact assessment — though EU-hosted Intercom shrinks that exposure.</p>
+      <p><b>Model token pricing.</b> Omitted rather than guessed. The structural levers — prompt caching, small-model routing, caching answers on read-only intents only — are price-independent and still correct.</p>
+      <p><b>Competition.</b> I make no comparative price claims about any agent vendor beyond the verified fact that they publish no list price. A build-vs-buy case against a specialist vendor still needs a real conversation with sales. My view is that staying with Intercom rests on sunk cost, a published and predictable unit price, and continuity of the human workflow — not on the agent being the best product available.</p>
+      <p>Two absence-of-evidence claims I considered and rejected: that no public prompt-injection breach of a deployed support bot exists, and that no public cross-tenant agent incident exists. I couldn't verify either way, and absence of a public incident is weak evidence in both directions.</p>
+    </section>
+
+    <div class="pager">
+      <button data-goto="view-diagram"><div><div class="lbl">Back</div><div class="ttl">Diagram</div></div><span class="arr">←</span></button>
+      <button data-goto="view-doc"><div><div class="lbl">Back to start</div><div class="ttl">Document</div></div><span class="arr">←</span></button>
+    </div>
+  </article>
+
+  </main>
+</div>
+
+<script>
+  const views=['view-doc','view-diagram','view-tools'], tabs=['tab-doc','tab-diagram','tab-tools'];
+  function show(id){
+    views.forEach(v=>document.getElementById(v).classList.toggle('active',v===id));
+    tabs.forEach(t=>document.getElementById(t).setAttribute('aria-selected',t==='tab-'+id.slice(5)));
+    const onDoc=(id==='view-doc');
+    document.querySelectorAll('aside.side h4')[0].style.display=onDoc?'':'none';
+    document.getElementById('toc-doc').style.display=onDoc?'':'none';
+    document.querySelector('aside.side .rule').style.display=onDoc?'':'none';
+    window.scrollTo({top:0,behavior:'smooth'});
+    history.replaceState(null,'','#'+id);
+  }
+  tabs.forEach(t=>document.getElementById(t).addEventListener('click',()=>show(document.getElementById(t).getAttribute('aria-controls'))));
+  document.querySelector('.tabs').addEventListener('keydown',e=>{
+    const i=tabs.indexOf(document.activeElement.id); if(i<0)return;
+    let n=null; if(e.key==='ArrowRight')n=(i+1)%tabs.length; if(e.key==='ArrowLeft')n=(i-1+tabs.length)%tabs.length;
+    if(n!==null){e.preventDefault();document.getElementById(tabs[n]).focus();show(document.getElementById(tabs[n]).getAttribute('aria-controls'));}
+  });
+  document.querySelectorAll('[data-goto]').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();show(el.dataset.goto);}));
+  if(location.hash&&views.includes(location.hash.slice(1)))show(location.hash.slice(1));
+
+  const root=document.documentElement, stored=localStorage.getItem('theme');
+  if(stored)root.setAttribute('data-theme',stored);
+  document.getElementById('theme').addEventListener('click',()=>{
+    const n=root.getAttribute('data-theme')==='dark'?'light':'dark';
+    root.setAttribute('data-theme',n);localStorage.setItem('theme',n);
+  });
+
+  const panes=['flow','ascii','matrix','swim'];
+  function setPane(p){
+    panes.forEach(x=>document.getElementById('dg-'+x).classList.toggle('active',x===p));
+    document.querySelectorAll('.seg [data-dg]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.dg===p));
+  }
+  document.querySelectorAll('.seg [data-dg]').forEach(b=>b.addEventListener('click',()=>setPane(b.dataset.dg)));
+
+  const toc=document.getElementById('toc-doc');
+  document.querySelectorAll('#view-doc section.blk').forEach(sec=>{
+    const h=sec.querySelector('h2'); if(!h)return;
+    const n=h.querySelector('.n'), title=h.textContent.replace(/^\d+\s*/,'').trim();
+    const a=document.createElement('a'); a.href='#'+sec.id;
+    a.innerHTML=(n?'<b style="color:var(--accent)">'+n.textContent+'.</b> ':'')+title;
+    a.addEventListener('click',e=>{e.preventDefault();sec.scrollIntoView({behavior:'smooth',block:'start'});});
+    const li=document.createElement('li'); li.appendChild(a); toc.appendChild(li);
+  });
+  const links=[...toc.querySelectorAll('a')], secs=[...document.querySelectorAll('#view-doc section.blk')];
+  const spy=new IntersectionObserver(en=>{en.forEach(e=>{if(e.isIntersecting)links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+e.target.id));});},
+    {rootMargin:'-20% 0px -70% 0px'});
+  secs.forEach(s=>spy.observe(s));
+
+  function copyDiag(btn){
+    const t=document.getElementById('diag').innerText;
+    navigator.clipboard.writeText(t).then(()=>{const o=btn.textContent;btn.textContent='Copied';setTimeout(()=>btn.textContent=o,1400);});
+  }
+</script>
+</body>
+</html>
